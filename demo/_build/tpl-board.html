@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CxScope · Demo 2 看板分栏（右侧固定详情）</title>
+<style>
+/*__CORE_CSS__*/
+
+/* ============================ Demo 2 布局 ============================ */
+body { background: var(--bg); }
+
+#app {
+  height: 100vh; min-height: 0;
+  display: grid; grid-template-columns: 254px minmax(0, 1fr);
+}
+
+/* ---------- 左侧栏 ---------- */
+.sidebar {
+  background: var(--panel); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; min-height: 0; padding: 16px 14px 14px;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+.brand .logo {
+  width: 31px; height: 31px; border-radius: 9px;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 12.5px; letter-spacing: -.5px;
+  box-shadow: 0 5px 14px rgba(37, 99, 235, .32);
+}
+.brand .name { font-size: 14.5px; font-weight: 750; letter-spacing: -.25px; line-height: 1.15; }
+.brand .sub { font-size: 10.5px; color: var(--faint); margin-top: 1px; }
+.demo-badge {
+  display: inline-block; margin: 12px 4px 0;
+  font-size: 10px; font-weight: 700; letter-spacing: .7px;
+  color: var(--primary); background: var(--primary-soft);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  padding: 3px 8px; border-radius: 999px; align-self: flex-start;
+}
+
+.side-sec { margin-top: 18px; }
+.side-sec-title {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 6px 7px; color: var(--faint); font-size: 10.5px;
+  font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+}
+.side-sec-title .cnt { color: var(--muted); font-weight: 600; letter-spacing: 0; }
+#projectList { display: flex; flex-direction: column; gap: 1px; overflow-y: auto; margin: 0 -6px; }
+#projectList .proj-item { padding: 8px; }
+#projectList .proj-item .p-meta { font-size: 10.5px; }
+
+.side-actions { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.side-actions .btn { width: 100%; justify-content: flex-start; }
+.side-note {
+  margin-top: 14px; padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--panel-2); border: 1px dashed var(--border-strong);
+  color: var(--faint); font-size: 11px; line-height: 1.7;
+}
+.side-note b { color: var(--text-2); font-weight: 650; }
+
+.side-foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.side-foot .conn-pill { height: 28px; font-size: 11.5px; flex: 1; justify-content: center; }
+.side-foot .icon-btn { flex: none; }
+
+/* ---------- 右侧主区 ---------- */
+.main { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+
+.main-head {
+  flex: none; display: flex; align-items: flex-end; gap: 14px;
+  padding: 18px 22px 6px;
+}
+.main-head h1 { margin: 0; font-size: 19px; letter-spacing: -.5px; font-weight: 750; }
+.main-head .desc { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.main-head .head-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.main-filters {
+  flex: none; display: flex; align-items: center; gap: 9px;
+  padding: 8px 22px 12px; flex-wrap: wrap;
+}
+.picker-wrap { position: relative; flex: none; }
+#projectMenu { top: calc(100% + 7px); left: 0; }
+.main-filters .searchbox { flex: 1; max-width: 420px; }
+.main-filters .spacer { flex: 1; }
+
+/* KPI 卡片：点击筛选 */
+.kpi-row { flex: none; display: flex; gap: 10px; padding: 0 22px 13px; }
+.kpi-row .kpi-card { min-width: 118px; }
+.kpi-card .kpi-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: currentColor; opacity: .85; }
+
+/* 内容区：左表格 + 右固定详情（同一屏，无整页滚动） */
+.content {
+  flex: 1; min-height: 0; display: grid;
+  grid-template-columns: minmax(0, 1fr) 424px; gap: 14px;
+  padding: 0 22px 18px;
+}
+.content-left { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.list-head {
+  flex: none; display: flex; align-items: center; gap: 10px;
+  color: var(--muted); font-size: 12px; padding: 0 2px;
+}
+.list-head b { color: var(--text); font-size: 13px; font-weight: 700; }
+.list-head .spacer { flex: 1; }
+.content-left .table-wrap { flex: 1; min-height: 0; box-shadow: 0 10px 30px -26px rgba(15, 23, 42, .5); }
+
+#inspectorHost { min-width: 0; min-height: 0; display: flex; }
+#inspectorHost .inspector-panel { flex: 1; box-shadow: 0 10px 30px -26px rgba(15, 23, 42, .5); }
+#inspectorHost .inspector-empty .big { font-size: 36px; }
+
+table.results tbody tr { height: 50px; }
+.empty-row .empty-state { height: 300px !important; }
+
+.back-link { margin-left: 6px; color: var(--faint); font-size: 11px; }
+.back-link:hover { color: var(--primary); }
+
+@media (max-width: 1380px) {
+  #app { grid-template-columns: 228px minmax(0, 1fr); }
+  .content { grid-template-columns: minmax(0, 1fr) 380px; }
+}
+@media (max-width: 1180px) {
+  .demo-badge, .back-link { display: none; }
+  .main-filters .searchbox { max-width: 260px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============================ 左侧栏 ============================ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">CX</div>
+      <div>
+        <div class="name">CxScope</div>
+        <div class="sub">Checkmarx One · 看板分栏</div>
+      </div>
+    </div>
+    <span class="demo-badge">DEMO 2 · 看板分栏</span>
+
+    <div class="side-sec">
+      <div class="side-sec-title"><span>项目 Project</span><span class="cnt">可多选</span></div>
+      <div id="projectList"></div>
+    </div>
+
+    <div class="side-actions">
+      <button class="btn primary" id="localScanBtn" type="button">＋ 本地扫描</button>
+      <button class="btn ghost" id="resetFiltersBtn" type="button">重置筛选条件</button>
+    </div>
+
+    <div class="side-note">
+      <b>关于本地扫描：</b>选择本机文件夹（可多个）直接发起 Checkmarx One 扫描，扫描完成后结果自动进入当前看板。
+    </div>
+
+    <div class="side-foot">
+      <span class="conn-pill" id="connPill"><span class="pulse"></span>未连接</span>
+      <button class="icon-btn" id="settingsBtn" type="button" title="连接设置">⚙</button>
+    </div>
+  </aside>
+
+  <!-- ============================ 主区 ============================ -->
+  <div class="main">
+    <header class="main-head">
+      <div>
+        <h1>安全态势</h1>
+        <p class="desc">Checkmarx One · 最近扫描的 SAST 漏洞与修复态势 <a class="back-link" href="index.html">← 全部 Demo</a></p>
+      </div>
+      <div class="head-actions">
+        <span class="badge-soft">最近扫描 · 2026-11-01 14:05</span>
+      </div>
+    </header>
+
+    <!-- 项目 / 分支 / 扫描时间 同一排 -->
+    <section class="main-filters">
+      <div class="picker-wrap">
+        <button class="control" id="projectPickerBtn" type="button" title="选择项目（可多选）">
+          <span class="lbl">项目</span>
+          <span class="val">全部项目</span>
+          <span class="caret">▾</span>
+        </button>
+        <div class="popover hidden" id="projectMenu"></div>
+      </div>
+      <label class="control" title="按分支筛选">
+        <span class="lbl">分支</span>
+        <select id="branchSelect"><option value="">全部分支</option></select>
+      </label>
+      <label class="control" title="按扫描时间筛选">
+        <span class="lbl">扫描时间</span>
+        <select id="scanSelect"><option value="">最近一次扫描</option></select>
+      </label>
+      <label class="searchbox">🔍<input id="searchInput" type="text" placeholder="搜索漏洞 / 文件 / CWE…" /></label>
+    </section>
+
+    <!-- KPI：严重级别卡片，点击筛选 -->
+    <section class="kpi-row">
+      <button class="kpi-card on" data-sev="CRITICAL" type="button">
+        <div class="kpi-top"><span>Critical</span><span class="dot"></span></div>
+        <div class="kpi-n" data-count>–</div><div class="kpi-sub">严重</div><span class="kpi-bar"></span>
+      </button>
+      <button class="kpi-card on" data-sev="HIGH" type="button">
+        <div class="kpi-top"><span>High</span><span class="dot"></span></div>
+        <div class="kpi-n" data-count>–</div><div class="kpi-sub">高危</div><span class="kpi-bar"></span>
+      </button>
+      <button class="kpi-card on" data-sev="MEDIUM" type="button">
+        <div class="kpi-top"><span>Medium</span><span class="dot"></span></div>
+        <div class="kpi-n" data-count>–</div><div class="kpi-sub">中危</div><span class="kpi-bar"></span>
+      </button>
+      <button class="kpi-card on" data-sev="LOW" type="button">
+        <div class="kpi-top"><span>Low</span><span class="dot"></span></div>
+        <div class="kpi-n" data-count>–</div><div class="kpi-sub">低危</div><span class="kpi-bar"></span>
+      </button>
+      <button class="kpi-card on" data-sev="INFO" type="button">
+        <div class="kpi-top"><span>Info</span><span class="dot"></span></div>
+        <div class="kpi-n" data-count>–</div><div class="kpi-sub">信息</div><span class="kpi-bar"></span>
+      </button>
+    </section>
+
+    <!-- 表格 + 右侧固定详情：整屏内完成，不来回滚动 -->
+    <main class="content">
+      <section class="content-left">
+        <div class="list-head">
+          <b>漏洞列表</b>
+          <span id="resultCount">—</span>
+          <span class="spacer"></span>
+          <span>点击左侧行，右侧固定展示详情 →</span>
+          <button class="btn ghost sm" id="exportBtn" type="button">导出 CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table class="results">
+            <thead id="resultsHead"></thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="inspectorHost"></section>
+    </main>
+  </div>
+</div>
+
+<script>
+window.MOCK = /*__MOCK__*/;
+</script>
+<script>
+window.CX_DEMO = {
+  brand: 'CxScope',
+  product: 'Checkmarx One',
+  subtitle: '看板分栏',
+  detailMode: 'inspector',
+  theme: 'light',
+  autoLogin: false
+};
+</script>
+<script>
+/*__CORE_JS__*/
+</script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Checkmarx 漏洞看板 · 三套布局 Demo</title>
+<style>
+  :root {
+    --bg: #eef2f8; --panel: #fff; --border: #e2e8f0; --text: #0f172a;
+    --text-2: #334155; --muted: #64748b; --faint: #94a3b8;
+    --primary: #2563eb; --primary-soft: #e8efff;
+    --radius: 14px; --shadow: 0 18px 50px -28px rgba(15, 23, 42, .45);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "SFMono-Regular", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background:
+      radial-gradient(1100px 600px at 8% -8%, rgba(37, 99, 235, .12), transparent 60%),
+      radial-gradient(900px 560px at 102% -4%, rgba(6, 182, 212, .1), transparent 55%),
+      var(--bg);
+    color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.6;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 38px 26px 60px; }
+  header.page-head { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; margin-bottom: 26px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 40px; height: 40px; border-radius: 12px; flex: none;
+    background: linear-gradient(135deg, #2563eb, #06b6d4); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; box-shadow: 0 10px 24px rgba(37, 99, 235, .32);
+  }
+  h1 { margin: 0; font-size: 26px; letter-spacing: -.7px; line-height: 1.25; }
+  .sub { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
+  .head-meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px;
+    border-radius: 999px; background: rgba(255, 255, 255, .7); border: 1px solid var(--border);
+    color: var(--text-2); font-size: 12px; font-weight: 550;
+  }
+  .tag b { color: var(--primary); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column;
+    transition: transform .18s, box-shadow .18s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 26px 60px -26px rgba(15, 23, 42, .5); }
+  .shot {
+    position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden;
+    background: #0b1324; border-bottom: 1px solid var(--border);
+  }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .shot .badge {
+    position: absolute; left: 12px; top: 12px; z-index: 2;
+    font-size: 10.5px; font-weight: 750; letter-spacing: .8px;
+    padding: 4px 9px; border-radius: 999px; color: #fff;
+    background: rgba(15, 23, 42, .72); backdrop-filter: blur(4px);
+  }
+  .card-body { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
+  .card-body h2 { margin: 0; font-size: 17px; letter-spacing: -.3px; }
+  .card-body .desc { color: var(--muted); font-size: 12.5px; margin: 6px 0 12px; min-height: 44px; }
+  .feat { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .feat li { display: flex; gap: 8px; font-size: 12.5px; color: var(--text-2); }
+  .feat li::before { content: "✓"; color: var(--primary); font-weight: 700; flex: none; }
+  .card-actions { margin-top: auto; display: flex; gap: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 36px; padding: 0 15px; border-radius: 9px; font-size: 13px; font-weight: 600;
+    text-decoration: none; border: 1px solid var(--border); color: var(--text-2); background: #fff;
+    transition: all .15s;
+  }
+  .btn:hover { border-color: #c3cddc; background: #f8fafc; }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 8px 18px rgba(37, 99, 235, .25); }
+  .btn.primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+  .btn.ghost { background: transparent; }
+
+  .section-title { display: flex; align-items: baseline; gap: 10px; margin: 40px 0 14px; }
+  .section-title h3 { margin: 0; font-size: 16px; letter-spacing: -.2px; }
+  .section-title span { color: var(--faint); font-size: 12.5px; }
+
+  .detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .detail-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; box-shadow: 0 12px 34px -26px rgba(15, 23, 42, .45);
+  }
+  .detail-card .cap { padding: 10px 14px 12px; display: flex; align-items: center; gap: 8px; }
+  .detail-card .cap b { font-size: 13px; }
+  .detail-card .cap span { color: var(--faint); font-size: 11.5px; margin-left: auto; }
+  .detail-card img { width: 100%; display: block; border-top: 1px solid var(--border); }
+
+  .notes {
+    margin-top: 40px; background: rgba(255, 255, 255, .72); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 22px; box-shadow: 0 12px 34px -30px rgba(15, 23, 42, .4);
+  }
+  .notes h3 { margin: 0 0 10px; font-size: 15px; }
+  .notes ul { margin: 0; padding-left: 18px; color: var(--text-2); font-size: 13px; }
+  .notes li { margin: 5px 0; }
+  .notes code {
+    background: #eef2f8; border: 1px solid var(--border); border-radius: 5px;
+    padding: 1px 6px; font-family: var(--mono); font-size: 11.5px;
+  }
+  .kbd {
+    font-family: var(--mono); font-size: 11px; padding: 1px 6px;
+    border: 1px solid #cbd5e1; border-bottom-width: 2px; border-radius: 5px;
+    background: #fff; color: var(--text-2);
+  }
+  footer.page-foot { margin-top: 34px; color: var(--faint); font-size: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
+  footer.page-foot .dot { opacity: .5; }
+
+  /* 最新：当前页面版 Demo */
+  .current-card {
+    display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 24px; align-items: center;
+    background: linear-gradient(135deg, #ffffff 0%, #f3f8ff 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 18px; margin-bottom: 26px;
+  }
+  .current-shot {
+    display: block; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border); background: #0b1324; aspect-ratio: 16 / 10;
+  }
+  .current-shot img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .current-body { padding: 6px 8px; }
+  .current-flag {
+    display: inline-block; font-size: 10.5px; font-weight: 750; letter-spacing: .7px;
+    color: #0e7490; background: #e0f7fa; border: 1px solid #a5f3fc;
+    border-radius: 999px; padding: 4px 10px; margin-bottom: 10px;
+  }
+  .current-body h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.4px; }
+  .current-body p { margin: 0 0 12px; color: var(--text-2); font-size: 13px; line-height: 1.75; }
+  .current-body .feat { margin-bottom: 14px; }
+
+  @media (max-width: 1080px) {
+    .grid, .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .current-card { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .wrap { padding: 24px 16px 40px; }
+    .grid, .detail-grid { grid-template-columns: 1fr; }
+    .head-meta { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <div class="brand">
+      <div class="logo">CX</div>
+      <div>
+        <h1>Checkmarx 漏洞看板 · 页面 Demo 合集</h1>
+        <div class="sub">最上方是「与正式页面一致」的最新 Demo（无需代理 / API Key）；下方是 3 套早期布局原型，可对比交互形态。</div>
+      </div>
+    </div>
+    <div class="head-meta">
+      <span class="tag">最新：<b>当前页面版 Demo</b></span>
+      <span class="tag">另有 3 套布局原型</span>
+      <span class="tag">全部为本地模拟数据</span>
+    </div>
+  </header>
+
+  <!-- ======================= 最新：当前页面版 Demo ======================= -->
+  <section class="current-card">
+    <a class="current-shot" href="current-page-demo.html" title="打开当前页面版 Demo">
+      <img src="shots/current-board.png" alt="当前页面版 Demo 截图" />
+    </a>
+    <div class="current-body">
+      <span class="current-flag">最新 · 与正式页面一致</span>
+      <h2>当前页面版 Demo（模拟数据）</h2>
+      <p>按现在交付的正式页面（Demo 1 布局）构建：项目/分支/扫描时间筛选、严重级别标签、右侧可拖拽详情抽屉、扫描链接直达、本地扫描模拟。所有数据均为本地模拟，
+        <b>不需要 proxy.py、不需要真实 API Key、不发起网络请求</b>，双击打开即可体验。</p>
+      <ul class="feat">
+        <li>与正式页面使用同一套代码，仅注入演示 mock 层</li>
+        <li>演示登录（Key 已预填）→ 自动加载 3 个项目 / 10 条最新漏洞</li>
+        <li>抽屉拖拽宽度、无横向滚动、CSV 导出等交互与正式版一致</li>
+        <li>本地扫描会模拟多项目并行进度，并回填结果</li>
+      </ul>
+      <div class="card-actions">
+        <a class="btn primary" href="current-page-demo.html">打开当前页面 Demo</a>
+        <a class="btn ghost" href="current-page-demo.html#state=board&open=2">直接看详情</a>
+        <a class="btn ghost" href="current-page-demo.html#state=board&modal=scan">看本地扫描</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <article class="card">
+      <a class="shot" href="demo-1-classic.html" title="打开 Demo 1">
+        <span class="badge">DEMO 1 · 经典控制台</span>
+        <img src="shots/demo1-board.png" alt="Demo 1 经典控制台截图" />
+      </a>
+      <div class="card-body">
+        <h2>经典控制台</h2>
+        <p class="desc">顶部工具栏 + 单行筛选 + 全宽表格。点击任意漏洞，从右侧滑出抽屉展示完整详情，信息密度最高、上手最快。</p>
+        <ul class="feat">
+          <li>项目 / 分支 / 扫描时间同一排</li>
+          <li>严重级别标签点击即筛选</li>
+          <li>右侧抽屉：攻击向量、数据流、修复示例</li>
+          <li>登录后隐藏登录页，齿轮随时调出设置</li>
+        </ul>
+        <div class="card-actions">
+          <a class="btn primary" href="demo-1-classic.html">打开 Demo 1</a>
+          <a class="btn ghost" href="demo-1-classic.html#state=board&open=f-001">直接看详情</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="shot" href="demo-2-board.html" title="打开 Demo 2">
+        <span class="badge">DEMO 2 · 看板分栏</span>
+        <img src="shots/demo2-board.png" alt="Demo 2 看板分栏截图" />
+      </a>
+      <div class="card-body">
+        <h2>看板分栏</h2>
+        <p class="desc">左侧项目导航 + 顶部严重级别 KPI 卡片 + 右侧固定详情面板。表格与详情同屏并排，适合安全同学连续 triage，不用反复开关弹窗。</p>
+        <ul class="feat">
+          <li>KPI 卡片点击即筛选严重级别</li>
+          <li>右侧 Inspector 固定展示，不遮挡列表</li>
+          <li>侧栏多项目勾选，实时联动表格</li>
+          <li>大屏看板，整页无滚动，仅表格内部滚动</li>
+        </ul>
+        <div class="card-actions">
+          <a class="btn primary" href="demo-2-board.html">打开 Demo 2</a>
+          <a class="btn ghost" href="demo-2-board.html#state=board&open=f-006">直接看详情</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="shot" href="demo-3-dark.html" title="打开 Demo 3">
+        <span class="badge">DEMO 3 · 深色作战室</span>
+        <img src="shots/demo3-board.png" alt="Demo 3 深色作战室截图" />
+      </a>
+      <div class="card-body">
+        <h2>深色作战室</h2>
+        <p class="desc">深色大屏 + 多项目 Tab + 居中弹窗详情。适合投屏 / 值守大屏，多项目切换直观，弹窗内左右对照阅读修复代码。</p>
+        <ul class="feat">
+          <li>项目 Tab 多选，切换即联动</li>
+          <li>严重级别标签 / 搜索 / 分支一行筛选</li>
+          <li>居中弹窗：左侧分析 + 右侧修复示例</li>
+          <li>深色主题，投屏与长时间使用更舒适</li>
+        </ul>
+        <div class="card-actions">
+          <a class="btn primary" href="demo-3-dark.html">打开 Demo 3</a>
+          <a class="btn ghost" href="demo-3-dark.html#state=board&open=f-001">直接看详情</a>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="section-title">
+    <h3>三种「漏洞详情」形态对比</h3>
+    <span>攻击向量 / 数据流 / 修复示例 / 参考链接 四种信息在三种容器里的呈现</span>
+  </div>
+  <div class="detail-grid">
+    <div class="detail-card">
+      <div class="cap"><b>右侧抽屉</b><span>Demo 1</span></div>
+      <img src="shots/demo1-detail.png" alt="右侧抽屉详情截图" />
+    </div>
+    <div class="detail-card">
+      <div class="cap"><b>固定 Inspector 面板</b><span>Demo 2</span></div>
+      <img src="shots/demo2-detail.png" alt="固定面板详情截图" />
+    </div>
+    <div class="detail-card">
+      <div class="cap"><b>居中弹窗</b><span>Demo 3</span></div>
+      <img src="shots/demo3-detail.png" alt="弹窗详情截图" />
+    </div>
+  </div>
+
+  <div class="notes">
+    <h3>怎么玩 / 演示约定</h3>
+    <ul>
+      <li><b>最新「当前页面版 Demo」</b>：与正式页面同一套代码构建，登录页已预填演示 API Key，点「登录」后会自动选择演示项目并展示 10 条漏洞；无需 proxy.py、无需真实 Key、不发起网络请求。</li>
+      <li>首次打开是 <b>API Key 登录页</b>（与 IDEA 插件一致，只填 API Key）；演示环境任意内容即可登录，登录成功后自动隐藏登录页。</li>
+      <li>右上角 <b>⚙</b> 随时调出连接设置；里面有「退出登录」，可回到登录界面重新体验。</li>
+      <li>点顶部 <b>严重级别标签 / KPI 卡片</b> 可筛选；<kbd class="kbd">⌘/Ctrl</kbd>+<kbd class="kbd">Enter</kbd> 在登录框提交，<kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> 切换漏洞，<kbd class="kbd">Esc</kbd> 关闭详情。</li>
+      <li><b>项目多选</b>：当前页面版顶部「项目」下拉勾选后点「应用」；Demo 1 顶部下拉、Demo 2 左侧项目列表、Demo 3 项目 Tab 也支持多项目。</li>
+      <li><b>本地扫描</b>：点「＋ 本地扫描」→ 添加多个本地文件夹（每个对应一个 Checkmarx One 项目）→ 开始扫描，可看到多项目并行进度，完成后结果自动进入看板。当前页面版与 Demo 均为模拟流程，不会真的上传源码。</li>
+      <li>所有页面均为<b>纯静态、单文件</b>（截图在 <code>shots/</code>），数据是内置 mock 数据，不会访问 Checkmarx 或任何网络接口。</li>
+      <li>直接带参数打开可复现状态：<code>#state=board</code> 跳过登录、<code>&amp;open=2</code> 打开第 3 条漏洞、<code>&amp;modal=scan</code> 打开本地扫描弹窗。</li>
+    </ul>
+  </div>
+
+  <footer class="page-foot">
+    <span>Checkmarx 漏洞看板 · 交互原型</span>
+    <span class="dot">·</span>
+    <span>当前页面版 Demo：3 个项目 / 6 次扫描 / 16 条漏洞（最新扫描 10 条）</span>
+    <span class="dot">·</span>
+    <span>正式页面：proxy.py + Checkmarx One API Key 登录</span>
+  </footer>
+</div>
+</body>
+</html>
